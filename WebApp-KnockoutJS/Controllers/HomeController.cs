@@ -26,5 +26,10 @@ namespace WebApp_KnockoutJS.Controllers
 
             return View();
         }
+
+        public ActionResult Sample()
+        {
+            return View();
+        }
     }
 }
