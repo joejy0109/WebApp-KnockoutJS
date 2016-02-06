@@ -28,6 +28,7 @@ namespace WebApp_KnockoutJS
                       "~/Content/site.css"));
 
             bundles.Add(new ScriptBundle("~/bundles/knockout").Include("~/Scripts/knockout-{version}.js"));
+            bundles.Add(new ScriptBundle("~/bundles/angular").Include("~/Scripts/angular.js"));
         }
     }
 }

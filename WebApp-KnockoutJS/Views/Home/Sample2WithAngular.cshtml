@@ -1,0 +1,97 @@
+﻿
+@{
+    ViewBag.Title = "Sample2WithAngular";
+}
+
+<h2>Sample2WithAngular</h2>
+
+<div ng-app="myApp" ng-controller="myCtrl">
+    <form name="myForm">
+        @*<div>
+            이메일 샘플:
+            <div>
+                <input type="email" name="myEmail" ng-model="text" class="form-control"/>
+                <span ng-show="myApp.myForm.myEmail.$error.email" />
+                <p>{{myApp.myForm.myEmail.$valid}}</p>
+            </div>
+        </div>*@
+        <br />
+        <div>
+            은퇴나이: <input ng-model="age" type="text" name="a" class="form-control text-right" style="width:100px" />
+        </div>
+        <br />
+        <div>
+            은퇴기간: <input ng-model="afterYears" ng-change="calcAll()" type="text" name="e" class="form-control  text-right" style="width:100px" />
+        </div>
+        <br />
+        <div>
+            연간 필요비용: <input ng-model="costPerYear" ng-change="calcPerMonth()" type="text" name="y" class="form-control  text-right" style="width:200px" /> 만원
+        </div>
+        <br />
+        <div>
+            월 비용: <input ng-model="costPerMonth" ng-change="calcPerYear()" type="text" name="m" class="form-control  text-right" style="width:200px" /> 만원
+        </div>
+        <br />
+        <div>
+            총 목표 금액: <input ng-model="total" ng-change="calYearMonth()" type="text" name="t" class="text-right form-control" style="width:200px" /> 만원
+        </div>
+
+        <div>총 목표금액: {{totalCost()}}</div>
+        <div>연간 금액: {{calcPerYear()}}</div>
+        <div>월별 금액: {{calcPerMonth()}}</div>
+    </form>
+</div>
+
+@section scripts{
+@Scripts.Render("~/bundles/angular")
+
+<script type="text/javascript">
+    var app = angular.module('myApp', []);
+    app.controller('myCtrl', function ($scope) {
+
+        $scope.age = 60;   
+        $scope.afterYears = 30;
+        $scope.costPerYear = 0;
+        $scope.costPerMonth = 0;
+        $scope.total = 0;
+
+        $scope.calcAll = function () {
+
+            if (!$.isNumeric($scope.afterYears))
+                $scope.afterYears = 0;
+
+            var y = $scope.afterYears;
+
+            if (y == 0) return;
+
+            var month = $scope.total / y / 12
+            var year = month * 12
+            var total = year * y;
+            $scope.costPerYear = year;
+            $scope.costPerMonth = month;
+            $scope.total = total;
+        };
+        $scope.calYearMonth = function () {
+            var month = $scope.total / 30 / 12;
+            var year = $scope.total / 30;
+            $scope.costPerYear = year;
+            $scope.costPerMonth = month;            
+        };
+        $scope.totalCost = function () {            
+            var ret = $scope.costPerYear * $scope.afterYears;
+            $scope.total = ret;
+            return ret;
+        };
+        $scope.calcPerMonth = function () {
+            var result = $scope.costPerYear / 12;
+            $scope.costPerMonth = result;
+            return result;
+        };
+        $scope.calcPerYear = function () {
+            var result = $scope.costPerMonth * 12;
+            $scope.costPerYear = result;
+            return result;
+        };
+    });
+</script>
+}

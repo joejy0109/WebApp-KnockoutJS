@@ -27,9 +27,22 @@ namespace WebApp_KnockoutJS.Controllers
             return View();
         }
 
-        public ActionResult Sample()
+        [Route("knockout")]
+        public ActionResult knockout()
         {
-            return View();
+            return View("SampleWithKnockout");
+        }
+
+        [Route("angular")]
+        public ActionResult angular()
+        {
+            return View("Sample2WithAngular");
+        }
+
+        [Route("angular2")]
+        public ActionResult angular2()
+        {
+            return View("Sample2WithAngular2");
         }
     }
 }

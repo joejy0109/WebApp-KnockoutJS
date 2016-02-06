@@ -1,0 +1,65 @@
+﻿
+@{
+    ViewBag.Title = "Sample";
+}
+
+<h2>Sample</h2>
+
+<div>
+    은퇴나이: <input data-bind="value: age, valueUpdate: 'afterkeyup'" type="text" name="entireYear" class="form-control text-right" style="width:100px" />
+</div>
+<br />
+<div>
+    은퇴기간: <input data-bind="value: days, valueUpdate: 'afterkeydown'" type="text" name="entireDays" class="form-control  text-right"  style="width:100px" />
+</div>
+<br />
+<div>
+    연간 필요비용: <input data-bind="value: costByYear, textInput: calcYear, valueUpdate: 'afterkeydown'" type="text" name="costByYear" class="form-control  text-right"  style="width:200px" /> 만원
+</div>
+<br />
+<div>
+    월 비용: <input data-bind="value: costByMonth, textInput: calcMonth, valueUpdate: 'afterkeydown'" type="text" name="costByMonth" class="form-control  text-right"  style="width:200px" /> 만원
+</div>
+<br />
+<div>
+    총 목표 금액: <input data-bind="value: totalCost,textInput: calcuateTotal, valueUpdate: 'afterkeydown'" type="text" name="totalCost" class="text-right form-control"  style="width:200px" /> 만원
+</div>
+
+@section scripts{
+@Scripts.Render("~/bundles/knockout")
+    <script type="text/javascript">
+        
+        var data = { age: 60, days: 30, costByYear: 2400, costByMonth: 200, totalCost: 6000 };
+
+        function Cost(data) {
+            var self = this;
+            data = data || {};
+
+            self.age = ko.observable(data.age);
+            self.days = ko.observable(data.days);
+            self.costByYear = ko.observable(data.costByYear);
+            self.costByMonth = ko.observable(data.costByMonth);
+            self.totalCost = ko.observable(data.totalCost);
+
+            self.calcuateTotal = ko.pureComputed(function () {
+
+
+                return (self.days()*12) * (self.costByYear()/12);
+            });
+
+            self.calcYear = ko.pureComputed(function () {           
+                
+                return self.costByMonth() * 12;
+            });
+
+            self.calcMonth = ko.pureComputed(function () {             
+                return self.costByYear() / 12;
+            });
+        }       
+       
+        $(function () {
+            ko.applyBindings(new Cost(data));
+        });
+
+    </script>    
+    }
