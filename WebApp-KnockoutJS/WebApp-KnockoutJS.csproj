@@ -166,7 +166,6 @@
     <Content Include="Views\Home\Index.cshtml" />
     <Content Include="Views\Home\SampleWithKnockout.cshtml" />
     <Content Include="Views\Home\Sample2WithAngular.cshtml" />
-    <Content Include="Views\Home\Sample2WithAngular2.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

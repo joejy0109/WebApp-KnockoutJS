@@ -21,7 +21,7 @@
         </div>
         <br />
         <div>
-            은퇴기간: <input ng-model="afterYears" ng-change="calcAll()" type="text" name="e" class="form-control  text-right" style="width:100px" />
+            은퇴기간: <input ng-model="period" ng-change="calcAll()" type="text" name="e" class="form-control  text-right" style="width:100px" />
         </div>
         <br />
         <div>
@@ -50,17 +50,18 @@
     app.controller('myCtrl', function ($scope) {
 
         $scope.age = 60;   
-        $scope.afterYears = 30;
+        $scope.period = 30;
         $scope.costPerYear = 0;
         $scope.costPerMonth = 0;
         $scope.total = 0;
 
         $scope.calcAll = function () {
 
-            if (!$.isNumeric($scope.afterYears))
-                $scope.afterYears = 0;
+            if (!$.isNumeric($scope.period))
+                //$scope.period = 0;
+                return;
 
-            var y = $scope.afterYears;
+            var y = $scope.period;
 
             if (y == 0) return;
 
@@ -78,7 +79,7 @@
             $scope.costPerMonth = month;            
         };
         $scope.totalCost = function () {            
-            var ret = $scope.costPerYear * $scope.afterYears;
+            var ret = $scope.costPerYear * $scope.period;
             $scope.total = ret;
             return ret;
         };

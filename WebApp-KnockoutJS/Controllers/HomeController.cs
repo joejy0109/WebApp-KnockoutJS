@@ -39,10 +39,6 @@ namespace WebApp_KnockoutJS.Controllers
             return View("Sample2WithAngular");
         }
 
-        [Route("angular2")]
-        public ActionResult angular2()
-        {
-            return View("Sample2WithAngular2");
-        }
+    
     }
 }
