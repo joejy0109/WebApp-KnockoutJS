@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Citi.MyCitigoldFP.Common.Utility
+namespace WebApp-KnockoutJS
 {
     /// <summary>
     /// 예외 처리 Helper.
