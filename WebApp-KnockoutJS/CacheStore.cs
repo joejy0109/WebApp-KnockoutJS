@@ -1,14 +1,3 @@
-/**
- * Copyright(c) 2016 CiTi Bank, Inc. All Rights Reserved.
- * 
- * 캐시(Cache) 기능를 제공한다.
- * 
- * 
- * @author: Jeongyong, Jo
- * @since : 2016-02-05
- * 
- */
-
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -21,7 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 
-namespace Citi.MyCitigoldFP.Common.Caching
+namespace WebApp-KnockoutJS
 {
     /// <summary>
     /// 절대 만료시간 또는 상대 만료 시간을 지정할 수 있는 캐시(Cache) 서비스.
