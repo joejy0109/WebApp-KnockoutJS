@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 
-namespace WebApp-KnockoutJS
+namespace WebApp_KnockoutJS
 {
     /// <summary>
     /// 절대 만료시간 또는 상대 만료 시간을 지정할 수 있는 캐시(Cache) 서비스.

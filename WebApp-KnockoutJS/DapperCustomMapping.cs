@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebApp-KnockoutJS
+namespace WebApp_KnockoutJS
 {
     /// <summary>
     /// Dapper.net에서 db column과 object Type 간 mapping용 config.

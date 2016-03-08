@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Reflection.Emit;
 
-namespace WebApp-KnockoutJS
+namespace WebApp_KnockoutJS
 {
     /// <summary>
     /// 확장 기능을 위한 클래스

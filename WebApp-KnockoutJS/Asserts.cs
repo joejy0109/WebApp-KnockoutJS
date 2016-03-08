@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebApp-KnockoutJS
+namespace WebApp_KnockoutJS
 {
     /// <summary>
     /// 예외 처리 Helper.
