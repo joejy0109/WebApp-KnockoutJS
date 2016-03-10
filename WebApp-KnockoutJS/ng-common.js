@@ -60,11 +60,18 @@ $app.directive('format', ['$filter', function ($filter) {
             if (!ctrl)
                 return;
 
-            ctrl.$formatters.unshift(function (a) {
-                return $filter(attrs.format)(ctrl.$modelValue);
+            var args = attrs.format.split(':');
+            var length = args[1] ? scope.$eval(args[1]) : 999999999;
+
+            ctrl.$formatters.unshift(function () {
+                //return $filter(attrs.format)(ctrl.$modelValue);
+                return $filter(args[0])(ctrl.$modelValue);
             });
 
             elem.bind('keyup', function (event) {
+                if (length != undefined)
+                    console.log(length);
+
                 var plainNumber = elem.val().replace(/[^\d]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 elem.val(plainNumber);
             });
