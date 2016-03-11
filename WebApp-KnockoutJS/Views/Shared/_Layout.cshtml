@@ -43,5 +43,15 @@
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
     @RenderSection("scripts", required: false)
+    
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <script type="text/javascript">
+            alert(@Html.Raw(Json.Encode(String.Join(Environment.NewLine, 
+                                        ViewData.ModelState.Where(x=>x.Value.Errors.Count> 0)
+                                            .SelectMany(x=>x.Value.Errors)
+                                            .Select(err=>err.ErrorMessage)))));
+        </script>
+    }
 </body>
 </html>
