@@ -78,3 +78,19 @@ $app.directive('format', ['$filter', function ($filter) {
         }
     }
 }]);
+
+$(function () {
+    $.validator.setDefaults({
+        onsubmit: true,
+        onkeyup: false,
+        onfocusout: false,
+        showErrors: function (errMap, errList) {
+            if (errList.length > 0) {
+                var errors = errList.map(function (elem) {
+                    return elem.message;
+                }).join('\r\n');
+                alert(errors)
+            }
+        }
+    });
+});
