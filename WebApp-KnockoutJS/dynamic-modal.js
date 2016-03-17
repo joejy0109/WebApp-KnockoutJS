@@ -14,6 +14,16 @@ var dynamicModal = modal = {
     },   
     modalObj: null,
     confirmMessage: undefined,
+    defaultLayout: '<div id="myModal" class="modal fade" role="dialog">' + 
+                        '<div class="modal-dialog">' +
+                            '<div class="modal-content" />'+
+                        '</div>' +
+                    '</div>',
+    layout: undefined,
+    init: function (outsideSelector) {
+        this.layout = outsideSelector;
+        return this;
+    },
     open: function (templateUrl, params, callback) {
         var $this = this;
         if ($.isFunction(params)) {
@@ -21,14 +31,28 @@ var dynamicModal = modal = {
             params = undefined;
         }
         $("body").off("submit", "#modalLayer form");
+
         if ($("#modalLayer").length == 0) {
-            $("body").append('<div id="modalLayer">'+
-                                '<div id="myModal" class="modal fade" role="dialog">' + 
-                                    '<div class="modal-dialog">' +
-                                        '<div id="dyModalContent" class="modal-content"></div>' +
-                                    '</div>' +
-                                 '</div>' +
-                              '</div>');
+            var tempLayout = $('<div id="modalLayer" />');
+            if ($this.layout !== undefined) {               
+                tempLayout.append($this.layout);
+            }
+            else {
+                tempLayout.append($this.defaultLayout);
+            }
+            tempLayout.find(":last").append("<div id='dyModalContent' />");            
+            $('body').append(tempLayout);
+
+            //console.log(tempLayout.html());
+
+            //$("body").append('<div id="modalLayer">'+
+            //                    '<div id="myModal" class="modal fade" role="dialog">' + 
+            //                        '<div class="modal-dialog">' +
+            //                            '<div id="dyModalContent" class="modal-content"></div>' +
+            //                        '</div>' +
+            //                     '</div>' +
+            //                  '</div>');
+
             $("#modalLayer").on("hide.bs.modal", function (e) {
                 $(e.target).removeData("bs.modal");
                 //$(e.target).remove();
@@ -55,7 +79,7 @@ var dynamicModal = modal = {
     },
 
 
-    // test용
+    // test용 쓰지 말것
     submit2: function(confirmMsg) {
         return function (processContinue, params, success, fail) {
             if (typeof processContinue !== "boolean") {
