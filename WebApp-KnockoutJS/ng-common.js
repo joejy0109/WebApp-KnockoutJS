@@ -2,11 +2,10 @@ var $app = angular.module('myApp', []);
 $app.factory('httpInsterceptor', function ($location, $q, $window) {
     return {
         request: function (config) {
-            var token = $($window.document.forms[0]).find("input[name='__RequestVerificationToken']").val();
+            var token = $('body').find("input[name='__RequestVerificationToken']:first").val();
             if (token)
                 config.headers["__RequestVerificationToken"] = token;
             config.headers["X-Requested-With"] = "XMLHttpRequest";
-
             return config;
         }
     }
@@ -20,6 +19,25 @@ $app.filter('trim', function () {
         return value.replace(/^\s+|\s+$/g, "");
     }
 });
+$app.filter('num', ['$filter', function ($filter) {
+    return function (value) {
+        var temp = value.toString().replace(/[^\d]/g, "");
+        var result = $filter('number')(temp);
+        return result;
+    }
+}]);
+$app.filter('toDate', ['$filter', function ($filter) {
+    return function (value, format) {
+        var dateString = value.toString().replace(/(\d{4})(\d{2})(\d{2})/gi, "$1-$2-$3");
+        var date = new Date(dateString);
+        //console.log(angular.isDate(date));
+        if (!angular.isDate(date))
+            return value;
+
+        var result = $filter('date')(date, format);
+        return result;
+    }
+}]);
 $app.filter('toNumber', function () {
     return function (value) {
         if (!Number(value)) {
@@ -28,6 +46,11 @@ $app.filter('toNumber', function () {
         return Number(value);
     }
 });
+$app.filter('html', ['$sce', function ($sce) {
+    return function (value) {
+        return $sce.trustAsHtml(value);
+    };
+}]);
 // ex '20140105' | mask : '####.##.##'
 $app.filter('mask', function () {
     return function (value, m) {
@@ -61,36 +84,26 @@ $app.directive('format', ['$filter', function ($filter) {
                 return;
 
             var args = attrs.format.split(':');
-            var length = args[1] ? scope.$eval(args[1]) : 999999999;
-
-            ctrl.$formatters.unshift(function () {
-                //return $filter(attrs.format)(ctrl.$modelValue);
-                return $filter(args[0])(ctrl.$modelValue);
-            });
-
+            var length = args[1] ? scope.$eval(args[1]) : 0;
+            $(elem).number(true, length);
+            ctrl.$formatters.unshift(function () {return $filter(args[0])(ctrl.$modelValue);});
             elem.bind('keyup', function (event) {
-                if (length != undefined)
-                    console.log(length);
-
-                var plainNumber = elem.val().replace(/[^\d]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");
-                elem.val(plainNumber);
+                /***** jQuery number plug-in *****/
+                //var plainNumber = elem.val().replace(/[^\d]/g, "").replace(/\B(?=(\d{3})+(?!\d))/g, ",");                
+                //elem.val(plainNumber);
             });
         }
     }
 }]);
+$app.directive('krInput', ['$parse', function ($parse) {
+    return {
+        priority : 2,
+        restrict : 'A',
+        compile : function(element) {
+            element.on('compositionstart',function(e){
+                e.stopImmediatePropagation();
+            });
+        },
 
-$(function () {
-    $.validator.setDefaults({
-        onsubmit: true,
-        onkeyup: false,
-        onfocusout: false,
-        showErrors: function (errMap, errList) {
-            if (errList.length > 0) {
-                var errors = errList.map(function (elem) {
-                    return elem.message;
-                }).join('\r\n');
-                alert(errors)
-            }
-        }
-    });
-});
+    };
+}]);
