@@ -42,6 +42,12 @@ var dynamicModal = modal = {
                 '</div>' +
             '</div>' +
         '</div>',
+        '<div id="myModal" class="modal fade" role="dialog">' +
+            '<div class="modal-dialog normal"> ' +
+                '<div class="modal-content">' +
+                '</div>' +
+            '</div>' +
+        '</div>'
     ],
     index: 0,
 
@@ -49,7 +55,7 @@ var dynamicModal = modal = {
     * @description
     * modal layout 디자인 형식을 선택한다.
     *
-    * @param {number} layoutIndex : 디자인 인덱스 번호 [0:default, 1:small wide, 2: wide] (required)
+    * @param {number} layoutIndex : 디자인 인덱스 번호 [0:default, 1:normal, 2: wide, 3:normal - 2] (required)
     * 
     * @returns {object} : current modal object.
     */
@@ -168,18 +174,20 @@ var dynamicModal = modal = {
                     success(res, $this.modalObj);                
                 $("#modalLayer div:eq(0)").modal('hide');
             }).error(function (xhr, textStatus, errThrown) {
-                //alert(textStatus);
+                //console.log(textStatus);
             }).fail(function (xhr, textStatus, errThrown) {
                 if (textStatus == "parsererror") {
                     $("#dyModalContent").html(xhr.responseText);
                 }                
+            }).complete(function () {
+                $this.comopileForAngular($this.modalObj);
             });
         });
     },
 
     /**
    * @description
-   * 쓰지 말것      
+   * 사용 금지 테스트 버전.....   
    */
     submit2: function(confirmMsg) {
         return function (processContinue, params, success, fail) {
@@ -224,6 +232,7 @@ var dynamicModal = modal = {
                 }).fail(function (xhr, textStatus, errThrown) {
                     if (textStatus == "parsererror") {
                         $("#dyModalContent").html(xhr.responseText);
+
                     }
                 });
             });
