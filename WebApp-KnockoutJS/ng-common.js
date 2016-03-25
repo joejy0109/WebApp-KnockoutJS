@@ -1,5 +1,5 @@
-var $app = angular.module('myApp', []);
-$app.factory('httpInsterceptor', function ($location, $q, $window) {
+var $app = angular.module('myApp', [])
+.factory('httpInsterceptor', ['$location', '$window', function ($location, $window) {
     return {
         request: function (config) {
             var token = $('body').find("input[name='__RequestVerificationToken']:first").val();
@@ -9,50 +9,55 @@ $app.factory('httpInsterceptor', function ($location, $q, $window) {
             return config;
         }
     }
-});
-$app.config(function ($httpProvider) { $httpProvider.interceptors.push('httpInsterceptor'); });
-$app.filter('trim', function () {
+}])
+.config(['$httpProvider', function ($httpProvider) {
+    $httpProvider.interceptors.push('httpInsterceptor');
+}])
+.filter('trim', function () {
     return function (value) {
         if (!angular.isString(value)) {
             return value;
         }
         return value.replace(/^\s+|\s+$/g, "");
     }
-});
-$app.filter('num', ['$filter', function ($filter) {
+})
+.filter('num', ['$filter', function ($filter) {
     return function (value) {
         var temp = value.toString().replace(/[^\d]/g, "");
         var result = $filter('number')(temp);
         return result;
     }
-}]);
-$app.filter('toDate', ['$filter', function ($filter) {
+}])
+.filter('toDate', ['$filter', function ($filter) {
     return function (value, format) {
-        var dateString = value.toString().replace(/(\d{4})(\d{2})(\d{2})/gi, "$1-$2-$3");
+        if (value == undefined)
+            return value;
+
+        var dateString = value.replace(/(\d{4})(\d{2})(\d{2})/gi, "$1-$2-$3");
         var date = new Date(dateString);
-        //console.log(angular.isDate(date));
+
         if (!angular.isDate(date))
             return value;
 
         var result = $filter('date')(date, format);
         return result;
     }
-}]);
-$app.filter('toNumber', function () {
+}])
+.filter('toNumber', function () {
     return function (value) {
         if (!Number(value)) {
             return value
         }
         return Number(value);
     }
-});
-$app.filter('html', ['$sce', function ($sce) {
+})
+.filter('html', ['$sce', function ($sce) {
     return function (value) {
         return $sce.trustAsHtml(value);
     };
-}]);
+}])
 // ex '20140105' | mask : '####.##.##'
-$app.filter('mask', function () {
+.filter('mask', function () {
     return function (value, m) {
         if (!angular.isString(value)) {
             return value;
@@ -75,8 +80,8 @@ $app.filter('mask', function () {
         }
         return s.join("") + h;
     }
-});
-$app.directive('format', ['$filter', function ($filter) {
+})
+.directive('format', ['$filter', function ($filter) {
     return {
         require: "?ngModel",
         link: function (scope, elem, attrs, ctrl) {
@@ -94,8 +99,8 @@ $app.directive('format', ['$filter', function ($filter) {
             });
         }
     }
-}]);
-$app.directive('krInput', ['$parse', function ($parse) {
+}])
+.directive('krInput', ['$parse', function ($parse) {
     return {
         priority : 2,
         restrict : 'A',
