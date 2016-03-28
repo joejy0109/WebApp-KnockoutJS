@@ -1,4 +1,4 @@
-var dynamicModal = modal = {
+var dynamicModal2 = modal = {
     getFormData: function (frm, params) {
         var data = {};
         $.map(frm.serializeArray(), function (v, i) {
@@ -210,7 +210,7 @@ var dynamicModal = modal = {
 /**
     테스트용2
 */
-var mm = (function () {
+var dynamicModal = modal = (function () {
 
     var layoutCount = 0;
     var layoutArray = [];
@@ -299,13 +299,9 @@ var mm = (function () {
                 layoutBase.find(":last").append("<div id='dyModalContent" + layoutCount + "' />");
                 layoutBase.appendTo('body');
 
-                layoutBase.on("hide.bs.modal", function (e) {
-                    var previous = layoutArray.pop();
-                    if (previous) {
-                        previous.modal('show');
-                    }
+                layoutBase.on("hide.bs.modal", function (e) {                    
                     //$(e.target).removeData("bs.modal");
-                    $("#modalLayer" + layoutCount).remove();
+                    setTimeout(function () { $("#modalLayer" + layoutCount).remove(); }, 500);
                 });
                 curModal = layoutBase.find('div:eq(0)');
             }
