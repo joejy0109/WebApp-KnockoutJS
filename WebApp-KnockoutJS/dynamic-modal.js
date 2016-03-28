@@ -13,14 +13,14 @@ var dynamicModal = modal = {
         return JSON.stringify(data);
     },   
     modalObj: null,
-    comopileForAngular : function(selector) {
+    comopileForAngular: function (selector) {        
         if (angular) {
             var $target = $("[ng-app]");
-            angular.element($target).injector().invoke(function ($compile) {
+            angular.element($target).injector().invoke(['$compile', function ($compile) {
                 var scope = angular.element($target).scope();
                 $compile(selector)(scope);
                 scope.$apply();
-            });
+            }]);
         }
     },
     confirmMessage: undefined,
@@ -85,7 +85,7 @@ var dynamicModal = modal = {
 
         if ($("#modalLayer").length == 0) {
             var baseLayout = $('<div id="modalLayer" />');
-            baseLayout.append($this.layoutSet[$this.index]);
+            baseLayout.append($this.layoutSet[$this.index || 0]);
             baseLayout.find(":last").append("<div id='dyModalContent' />");
             baseLayout.appendTo('body');
             //console.log(tempLayout.html());
@@ -96,18 +96,38 @@ var dynamicModal = modal = {
             });
             $this.modalObj = $("#modalLayer");
         }
-        $("#dyModalContent").load(templateUrl, params, function (res, status, xhr) {
-            if (xhr.status == 200) {
-                $.validator.unobtrusive.parse("#modalLayer form");
-                $.validator.methods.number = function (e) { return true; };
-                $("#modalLayer div:eq(0)").modal('show');
-                $this.comopileForAngular($(this));
-                if (typeof callback === "function") {
-                    callback($(this));
-                }
-            } else {
-                alert(xhr.responseText);
+
+        //$.param(params, true)
+        //$("#dyModalContent").load(templateUrl, params, function (res, status, xhr) {
+        //    if (xhr.status == 200) {
+        //        $.validator.unobtrusive.parse("#modalLayer form");
+        //        $.validator.methods.number = function (e) { return true; };
+        //        $("#modalLayer div:eq(0)").modal('show');
+        //        $this.comopileForAngular($(this));
+        //        if (typeof callback === "function") {
+        //            callback($(this));
+        //        }
+        //    } else {
+        //        alert(xhr.responseText);
+        //    }
+        //});
+        var targetlayout = $("#dyModalContent");
+        $.ajax({
+            type: params != undefined ? "post" : "get",
+            url: templateUrl,
+            data: JSON.stringify(params),
+            contentType: "application/json; charset=UTF-8",
+        }).done(function (res, status, xhr) {
+            targetlayout.html(res);
+            $.validator.unobtrusive.parse("#modalLayer form");
+            $.validator.methods.number = function (e) { return true; };
+            $("#modalLayer div:eq(0)").modal('show');
+            $this.comopileForAngular(targetlayout);
+            if (typeof callback === "function") {
+                callback(targetlayout);
             }
+        }).fail(function () {
+
         });
         return this;
     },
@@ -184,60 +204,206 @@ var dynamicModal = modal = {
             });
         });
     },
+};
 
-    /**
-   * @description
-   * 사용 금지 테스트 버전.....   
-   */
-    submit2: function(confirmMsg) {
-        return function (processContinue, params, success, fail) {
+
+/**
+    테스트용2
+*/
+var mm = (function () {
+
+    var layoutCount = 0;
+    var layoutArray = [];
+
+    var getFormData = function (frm, params) {
+        var data = {};
+        $.map(frm.serializeArray(), function (v, i) {
+            data[v['name']] = v['value'];
+        });
+
+        if (params !== undefined) {
+            $.map(params, function (val, key) {
+                data[key] = val;
+            });
+        }
+        return JSON.stringify(data);
+    };
+
+    var comopileForAngular = function (selector) {
+        if (angular) {
+            var $target = $("[ng-app]");
+            angular.element($target).injector().invoke(['$compile', function ($compile) {
+                var scope = angular.element($target).scope();
+                $compile(selector)(scope);
+                scope.$apply();
+            }]);
+        }
+    };
+
+    var layoutSet = [
+        '<div class="modal fade" role="dialog">' +
+            '<div class="modal-dialog">' +
+                '<div class="modal-content" />' +
+            '</div>' +
+        '</div>',
+        '<div class="modal fade" role="dialog">' +
+            '<div class="modal-dialog normal"> ' +
+                '<div class="modal-content pop-logout">' +
+                '</div>' +
+            '</div>' +
+        '</div>',
+        '<div class="modal fade" role="dialog">' +
+            '<div class="modal-dialog wide"> ' +
+                '<div class="modal-content">' +
+                '</div>' +
+            '</div>' +
+        '</div>',
+        '<div class="modal fade" role="dialog">' +
+            '<div class="modal-dialog normal"> ' +
+                '<div class="modal-content">' +
+                '</div>' +
+            '</div>' +
+        '</div>'
+    ];
+
+    return new function () {
+        var curModal = undefined;
+        var confirmMessage = undefined;
+        var $layoutIndex = 0;
+
+        this.init = function (layoutIndex) {
+            $layoutIndex = layoutIndex;
+            return this;
+        };
+
+        /**
+        * @description
+        * 지정된 {string} templateUrl에 대하여 html를 호출하여 layout popup을 띄운다.    
+        *
+        * @param {string} templateUrl : Url. (required)
+        * @param {JSON} params : POST 전송 parameters. (optional)
+        * @param {function} callback : popup 호출 후 callback function. (optional)
+        * 
+        * @returns {object} : current modal object.
+        */
+        this.open = function (templateUrl, params, callback) {
+            if ($.isFunction(params)) {
+                callback = params;
+                params = undefined;
+            }
+
+            if ($("#modalLayer" + layoutCount).length == 0) {
+                //layoutCount++;
+                var layoutBase = $('<div id="modalLayer' + layoutCount + '" />');
+                layoutBase.append(layoutSet[$layoutIndex || 0]);
+                layoutBase.find(":last").append("<div id='dyModalContent" + layoutCount + "' />");
+                layoutBase.appendTo('body');
+
+                layoutBase.on("hide.bs.modal", function (e) {
+                    var previous = layoutArray.pop();
+                    if (previous) {
+                        previous.modal('show');
+                    }
+                    //$(e.target).removeData("bs.modal");
+                    $("#modalLayer" + layoutCount).remove();
+                });
+                curModal = layoutBase.find('div:eq(0)');
+            }
+
+            $.ajax({
+                type: params != undefined ? "post" : "get",
+                url: templateUrl,
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=UTF-8",
+            }).done(function (res, status, xhr) {
+                layoutArray.push(curModal);
+                $("#dyModalContent" + layoutCount).html(res);
+                $.validator.unobtrusive.parse("#modalLayer" + layoutCount + " form");
+                $.validator.methods.number = function (e) { return true; };
+                curModal.modal('show');
+                comopileForAngular($("#dyModalContent" + layoutCount));
+                if (typeof callback === "function") {
+                    callback($("#dyModalContent" + layoutCount));
+                }
+            }).fail(function () {
+
+            });
+            return this;
+        };
+
+        /**
+        * @description
+        * submit 처리 전에 confirm 메세지 창을 표시한다.   
+        *
+        * @param {string} msg : 확인 메세지    
+        * 
+        * @returns {object} : current modal object.
+        */
+        this.confirm = function (msg) {
+            confirmMessage = msg;
+            return this;
+        };
+
+        /**
+        * @description
+        * 호출된 layout popup의 form submit을 수행한다. 
+        *
+        * @param {boolean} processContinue : submit 이후 자동으로 창을 닫을지 여부. (optional: 기본값 false)
+        * @param {JSON} params : POST 전송 parameters. (optional)
+        * @param {function} success : submit 후 success callback function. (optional)
+        * @param {function} fail : submit 호출 후 failed callback function. (optional)  
+        */
+        this.submit = function (processContinue, params, success, fail) {
+
             if (typeof processContinue !== "boolean") {
                 fail = success;
                 success = params;
                 params = processContinue;
                 processContinue = false;
             }
+
             if ($.isFunction(params)) {
                 fail = success;
                 success = params;
                 params = undefined;
             }
-            var $this = this;
 
-            $("body").on("submit", "#modalLayer form", function (e) {
-                if (!processContinue)
-                    e.preventDefault();
-                if (confirmMsg != undefined) {
-                    if (!confirm(confirmMsg)) {
-                        return;
-                    }
-                }
-                var frm = $(this);
-                jQuery.ajax({
-                    url: frm.attr('action'),
-                    type: 'POST',
-                    dataType: 'json',
-                    data: $this.getFormData(frm, params),
-                    processData: false,
-                    contentType: 'application/json; charset=UTF-8',
-                    headers: {
-                        "__RequestVerificationToken": frm.find("input[name='__RequestVerificationToken']").val()
-                    },
-                }).done(function (res, status, xhr) {
-                    if ($.isFunction(success))
-                        success(res, $this.modalObj);
-                    $("#modalLayer div:eq(0)").modal('hide');
-                }).error(function (xhr, textStatus, errThrown) {
-                    //alert(textStatus);
-                }).fail(function (xhr, textStatus, errThrown) {
-                    if (textStatus == "parsererror") {
-                        $("#dyModalContent").html(xhr.responseText);
+            $("body").off("submit", "#modalLayer" + layoutCount + " form")
+                .on("submit", "#modalLayer" + layoutCount + " form", function (e) {
 
+                    if (!processContinue)
+                        e.preventDefault();
+
+                    if (confirmMessage != undefined) {
+                        if (!confirm(confirmMessage))
+                            return;
                     }
+
+                    var frm = $(this);
+                    jQuery.ajax({
+                        url: frm.attr('action'),
+                        type: 'POST',
+                        dataType: 'json',
+                        data: getFormData(frm, params),
+                        processData: false,
+                        contentType: 'application/json; charset=UTF-8',
+                        headers: {
+                            "__RequestVerificationToken": frm.find("input[name='__RequestVerificationToken']").val()
+                        },
+                    }).done(function (res, status, xhr) {
+                        if ($.isFunction(success))
+                            success(res, curModal);
+
+                        curModal.modal('hide');
+
+                    }).fail(function (xhr, textStatus, errThrown) {
+                        if (textStatus == "parsererror") {
+                            $("#dyModalContent" + layoutCount).html(xhr.responseText);
+                        }
+                    }).complete(function () {
+                        comopileForAngular(curModal);
+                    });
                 });
-            });
         };
-    },
-
-    
-};
+    };
+})();
