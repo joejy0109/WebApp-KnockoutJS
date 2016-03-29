@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 
 
-namespace WebApp_KnockoutJS
+namespace Citi.MyCitigoldFP.Common.Caching
 {
     /// <summary>
     /// 절대 만료시간 또는 상대 만료 시간을 지정할 수 있는 캐시(Cache) 서비스.
@@ -66,7 +66,10 @@ namespace WebApp_KnockoutJS
         {
             if (_cache.Contains(key))
                 return (T)_cache.Get(key);
-            return Restore<T>(key);
+
+            return default(T);
+            
+            //return Restore<T>(key);
         }
 
         /// <summary>
@@ -127,17 +130,17 @@ namespace WebApp_KnockoutJS
 
                 _cache.Set(key, item, policy);
 
-                if (useBackup)
-                {
-                    Backup(new CacheBackupModel<T>
-                    {
-                        Key = key,
-                        Item = item,
-                        IsAbsoluteExpiration = isAbsoluteExpiration,
-                        ExpireTime = expireTime,
-                        RemoveCallback = removeCallback
-                    });
-                }
+                //if (useBackup)
+                //{
+                //    Backup(new CacheBackupModel<T>
+                //    {
+                //        Key = key,
+                //        Item = item,
+                //        IsAbsoluteExpiration = isAbsoluteExpiration,
+                //        ExpireTime = expireTime,
+                //        RemoveCallback = removeCallback
+                //    });
+                //}
 
                 return item;
             }
