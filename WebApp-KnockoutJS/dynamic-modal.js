@@ -91,8 +91,9 @@ var dynamicModal2 = modal = {
             //console.log(tempLayout.html());
            
             $("#modalLayer").on("hide.bs.modal", function (e) {
-                $(e.target).removeData("bs.modal");
+                //$(e.target).removeData("bs.modal");
                 //$(e.target).remove();
+                setTimeout(function () { $("#modalLayer").remove(); }, 500);
             });
             $this.modalObj = $("#modalLayer");
         }
@@ -210,7 +211,7 @@ var dynamicModal2 = modal = {
 /**
     테스트용2
 */
-var dynamicModal = modal = (function () {
+var dynamicModal3 = (function () {
 
     var layoutCount = 0;
     var layoutArray = [];
@@ -398,6 +399,204 @@ var dynamicModal = modal = (function () {
                         }
                     }).complete(function () {
                         comopileForAngular(curModal);
+                    });
+                });
+        };
+    };
+})();
+
+
+/**
+    다중 레이어 모달 
+*/
+var dynamicModal = (function () {
+    
+    var layoutCount = 0;
+    var layoutArray = [];
+
+    var getFormData = function (frm, params) {
+        var data = {};
+        $.map(frm.serializeArray(), function (v, i) {
+            data[v['name']] = v['value'];
+        });
+
+        if (params !== undefined) {
+            $.map(params, function (val, key) {
+                data[key] = val;
+            });
+        }
+        return JSON.stringify(data);
+    };
+
+    var comopileForAngular = function (selector) {
+        if (angular) {
+            var $target = $("[ng-app]");
+            angular.element($target).injector().invoke(['$compile', function ($compile) {
+                var scope = angular.element($target).scope();
+                $compile(selector)(scope);
+                scope.$apply();
+            }]);
+        }
+    };
+
+    var backgroundEffectOnlyOne = function () {
+        if ($(".modal-backdrop").length > 1)
+            $(".modal-backdrop:last").css('opacity', 0);
+    };
+
+    var layoutSet = [
+        '<div class="modal fade" role="dialog">' +
+            '<div class="modal-dialog">' +
+                '<div class="modal-content" />' +
+            '</div>' +
+        '</div>',
+        '<div class="modal fade" role="dialog">' +
+            '<div class="modal-dialog normal"> ' +
+                '<div class="modal-content pop-logout">' +
+                '</div>' +
+            '</div>' +
+        '</div>',
+        '<div class="modal fade" role="dialog">' +
+            '<div class="modal-dialog wide"> ' +
+                '<div class="modal-content">' +
+                '</div>' +
+            '</div>' +
+        '</div>',
+        '<div class="modal fade" role="dialog">' +
+            '<div class="modal-dialog normal"> ' +
+                '<div class="modal-content">' +
+                '</div>' +
+            '</div>' +
+        '</div>'
+    ];
+
+    return new function () {
+        var confirmMessage = undefined;
+        var $layoutIndex = 0;
+
+        this.init = function (layoutIndex) {
+            $layoutIndex = layoutIndex;
+            return this;
+        };
+
+        /**
+        * @description
+        * 지정된 {string} templateUrl에 대하여 html를 호출하여 layout popup을 띄운다.    
+        *
+        * @param {string} templateUrl : Url. (required)
+        * @param {JSON} params : POST 전송 parameters. (optional)
+        * @param {function} callback : popup 호출 후 callback function. (optional)
+        * 
+        * @returns {object} : current modal object.
+        */
+        this.open = function (templateUrl, params, callback) {
+            if ($.isFunction(params)) {
+                callback = params;
+                params = undefined;
+            }
+                        
+            layoutCount++;
+
+            var layout = $('<div id="modalLayer' + layoutCount + '" />');
+            layout.append(layoutSet[$layoutIndex || 0]);
+            layout.find(":last").append("<div id='dyModalContent" + layoutCount + "' />");
+            layout.appendTo('body');
+            layout.on("hide.bs.modal", function (e) {
+                setTimeout(function () {
+                    layoutArray.pop().remove();                    
+                    layoutCount--;
+                }, 500);
+            });
+
+            $.ajax({
+                type: params != undefined ? "post" : "get",
+                url: templateUrl,
+                data: JSON.stringify(params),
+                contentType: "application/json; charset=UTF-8",
+            }).done(function (res, status, xhr) {
+                layout.find("[id^='dyModalContent']").html(res);
+                $.validator.unobtrusive.parse("#modalLayer" + layoutCount + " form");
+                $.validator.methods.number = function (e) { return true; };
+                layout.find('div:eq(0)').modal('show');
+                backgroundEffectOnlyOne();
+                layoutArray.push(layout);
+                comopileForAngular($("#dyModalContent" + layoutCount));
+                if (typeof callback === "function") {
+                    callback($("#dyModalContent" + layoutCount));
+                }
+            }).fail(function () {
+
+            });
+            return this;
+        };
+
+        /**
+        * @description
+        * submit 처리 전에 confirm 메세지 창을 표시한다.   
+        *
+        * @param {string} msg : 확인 메세지    
+        * 
+        * @returns {object} : current modal object.
+        */
+        this.confirm = function (msg) {
+            confirmMessage = msg;
+            return this;
+        };
+
+        /**
+        * @description
+        * 호출된 layout popup의 form submit을 수행한다. 
+        *
+        * @param {boolean} processContinue : submit 이후 자동으로 창을 닫을지 여부. (optional: 기본값 false)
+        * @param {JSON} params : POST 전송 parameters. (optional)
+        * @param {function} success : submit 후 success callback function. (optional)
+        * @param {function} fail : submit 호출 후 failed callback function. (optional)  
+        */
+        this.submit = function (processContinue, params, success, fail) {
+
+            if (typeof processContinue !== "boolean") {
+                fail = success;
+                success = params;
+                params = processContinue;
+                processContinue = false;
+            }
+
+            if ($.isFunction(params)) {
+                fail = success;
+                success = params;
+                params = undefined;
+            }
+
+            $("body").off("submit", "#modalLayer" + layoutCount + " form")
+                .on("submit", "#modalLayer" + layoutCount + " form", function (e) {
+
+                    if (!processContinue)
+                        e.preventDefault();
+
+                    if (confirmMessage != undefined) {
+                        if (!confirm(confirmMessage))
+                            return;
+                    }
+
+                    var frm = $(this);
+                    jQuery.ajax({
+                        url: frm.attr('action'),
+                        type: 'POST',
+                        dataType: 'json',
+                        data: getFormData(frm, params),
+                        processData: false,
+                        contentType: 'application/json; charset=UTF-8',
+                        headers: { "__RequestVerificationToken": frm.find("input[name='__RequestVerificationToken']").val() }
+                    }).done(function (res, status, xhr) {
+                        var currentModal = layoutArray[layoutCount - 1];
+                        if ($.isFunction(success))
+                            success(res, currentModal);
+                        currentModal.find('div:eq(0)').modal('hide');
+                    }).fail(function (xhr, textStatus, errThrown) {
+                        if (textStatus == "parsererror")
+                            layoutArray[layoutCount - 1].find('[id^="dyModalContent"]').html(xhr.responseText);                        
+                    }).complete(function () {
+                        comopileForAngular(layoutArray[layoutCount - 1]);
                     });
                 });
         };
