@@ -439,11 +439,6 @@ var dynamicModal = (function () {
         }
     };
 
-    var backgroundEffectOnlyOne = function () {
-        if ($(".modal-backdrop").length > 1)
-            $(".modal-backdrop:last").css('opacity', 0);
-    };
-
     var layoutSet = [
         '<div class="modal fade" role="dialog">' +
             '<div class="modal-dialog">' +
@@ -471,11 +466,11 @@ var dynamicModal = (function () {
     ];
 
     return new function () {
-        var confirmMessage = undefined;
+        var $confirmMessage = undefined;
         var $layoutIndex = 0;
 
         this.init = function (layoutIndex) {
-            $layoutIndex = layoutIndex;
+            $layoutIndex = $.isNumeric(layoutIndex) ? layoutIndex : 0;
             return this;
         };
 
@@ -494,19 +489,20 @@ var dynamicModal = (function () {
                 callback = params;
                 params = undefined;
             }
-                        
-            layoutCount++;
 
-            var layout = $('<div id="modalLayer' + layoutCount + '" />');
-            layout.append(layoutSet[$layoutIndex || 0]);
+            var layoutIndex = $layoutIndex || 0;
+            $layoutIndex = 0;
+
+            var layout = $('<div id="modalLayer' + (++layoutCount) + '" />');
+            layout.append(layoutSet[layoutIndex]);
             layout.find(":last").append("<div id='dyModalContent" + layoutCount + "' />");
             layout.appendTo('body');
-            layout.on("hide.bs.modal", function (e) {
-                setTimeout(function () {
-                    layoutArray.pop().remove();                    
-                    layoutCount--;
-                }, 500);
-            });
+            layout.on("hide.bs.modal", function (e) {                
+                setTimeout(function () {                                        
+                    layoutArray.pop().remove();
+                    layoutCount--;                    
+                }, 300);                
+            });       
 
             $.ajax({
                 type: params != undefined ? "post" : "get",
@@ -515,11 +511,10 @@ var dynamicModal = (function () {
                 contentType: "application/json; charset=UTF-8",
             }).done(function (res, status, xhr) {
                 layout.find("[id^='dyModalContent']").html(res);
-                $.validator.unobtrusive.parse("#modalLayer" + layoutCount + " form");
-                $.validator.methods.number = function (e) { return true; };
-                layout.find('div:eq(0)').modal('show');
-                backgroundEffectOnlyOne();
                 layoutArray.push(layout);
+                $.validator.unobtrusive.parse("#modalLayer" + layoutCount + " form");
+                $.validator.methods.number = function (e) { return true; }; 
+                layout.find('div:eq(0)').modal({ backdrop: layoutArray.length == 1 });          
                 comopileForAngular($("#dyModalContent" + layoutCount));
                 if (typeof callback === "function") {
                     callback($("#dyModalContent" + layoutCount));
@@ -539,7 +534,7 @@ var dynamicModal = (function () {
         * @returns {object} : current modal object.
         */
         this.confirm = function (msg) {
-            confirmMessage = msg;
+            $confirmMessage = msg;
             return this;
         };
 
@@ -552,7 +547,7 @@ var dynamicModal = (function () {
         * @param {function} success : submit 후 success callback function. (optional)
         * @param {function} fail : submit 호출 후 failed callback function. (optional)  
         */
-        this.submit = function (processContinue, params, success, fail) {
+        this.submit = function (processContinue, params, success, fail) {            
 
             if (typeof processContinue !== "boolean") {
                 fail = success;
@@ -573,9 +568,12 @@ var dynamicModal = (function () {
                     if (!processContinue)
                         e.preventDefault();
 
-                    if (confirmMessage != undefined) {
-                        if (!confirm(confirmMessage))
+                    if ($confirmMessage != undefined) {
+                        var confirmMessage = $confirmMessage;
+                        $confirmMessage = undefined;
+                        if (!confirm(confirmMessage)) {
                             return;
+                        }   
                     }
 
                     var frm = $(this);
