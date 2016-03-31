@@ -1,5 +1,5 @@
 var $app = angular.module('myApp', [])
-.factory('httpInsterceptor', ['$location', '$window', function ($location, $window) {
+.factory('httpInsterceptor', ['$location', '$window', '$q', function ($location, $window, $q) {
     return {
         request: function (config) {
             var token = $('body').find("input[name='__RequestVerificationToken']:first").val();
@@ -7,6 +7,10 @@ var $app = angular.module('myApp', [])
                 config.headers["__RequestVerificationToken"] = token;
             config.headers["X-Requested-With"] = "XMLHttpRequest";
             return config;
+        },
+        responseError: function (error) {
+            alert(error.data);
+            return $q.reject(error);
         }
     }
 }])
