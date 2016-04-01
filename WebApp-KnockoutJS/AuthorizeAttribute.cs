@@ -1,3 +1,4 @@
+
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,18 +14,20 @@ namespace Citi.MyCitigoldFP.Common.Web.Auth
     /// @date: 2016-02-05
     /// </summary>
     [AttributeUsage(AttributeTargets.Class|AttributeTargets.Method, AllowMultiple=false, Inherited=true)]
-    public class MfpAuthorizeAttribute : AuthorizeAttribute
+    public class AuthorizeAttribute : AuthorizeAttribute
     {
         static readonly Type _allowAnonymousType = typeof(AllowAnonymousAttribute);
 
         readonly string _role;
-        
-        public MfpAuthorizeAttribute(string role)
+        readonly string _serviceName;
+
+        public MfpAuthorizeAttribute(string role, string serviceName = null)
         {
             if (string.IsNullOrEmpty(role))
                 throw new ArgumentNullException("role");
 
             _role = role;
+            _serviceName = serviceName;
         }
 
         /// <summary>
@@ -37,23 +40,56 @@ namespace Citi.MyCitigoldFP.Common.Web.Auth
                 throw new ArgumentNullException("filterContext");
 
             // AllowAnonymousAttribute가 선언된 Action Method 및 Controller는 검사를 통과한다.
-            bool skip = filterContext.ActionDescriptor.IsDefined(_allowAnonymousType, true) ||
+            bool isSkip = filterContext.ActionDescriptor.IsDefined(_allowAnonymousType, true) ||
                         filterContext.ActionDescriptor.ControllerDescriptor.IsDefined(_allowAnonymousType, true);
 
-            if (skip) return;
-
-            // TODO: 권한 검사 로직 (추후 로그인 사용자와 권한을 분리하는 로직 추가
-            var user = filterContext.HttpContext.User as MfpPrincipal;
-            if (user == null || !user.Identity.IsAuthenticated)
+            if (!isSkip)
             {
-                throw new InvalidOperationException("로그인이 필요합니다.");
-            }
-            if (!user.IsInRole(_role))
-            {
-                throw new InvalidOperationException("권한이 없습니다.");
+                // TODO: 권한 검사 로직 (추후 로그인 사용자와 권한을 분리하는 로직 추가
+                var user = filterContext.HttpContext.User as MfpPrincipal;
+                if (user == null || !user.Identity.IsAuthenticated)
+                {
+                    throw new MfpIsNotAuthenticatedException("로그인이 필요합니다.");                    
+                }
+                if (!user.IsInRole(_role))
+                {
+                    if (!string.IsNullOrEmpty(_serviceName))
+                        throw new MfpNotFoundAuthorizeException("[" + _serviceName + "] 서비스에 대한 권한이 없습니다.");
+                    throw new MfpNotFoundAuthorizeException("권한이 없습니다.");
+                }
             }
 
             base.OnAuthorization(filterContext);
+        }
+    }
+
+    /// <summary>
+    /// 로그인 인증 예외
+    /// 
+    /// @author: Jeongyong, Jo
+    /// @date: 2016-03-31
+    /// </summary>
+    public class MfpIsNotAuthenticatedException : Exception
+    {
+        public MfpIsNotAuthenticatedException(string message)
+            : base(message)
+        {
+
+        }
+    }
+
+    /// <summary>
+    /// 서비스 권한 예외.
+    /// 
+    /// @author: Jeongyong, Jo
+    /// @date: 2016-03-31
+    /// </summary>
+    public class MfpNotFoundAuthorizeException : Exception
+    {
+        public MfpNotFoundAuthorizeException(string message) 
+            : base (message)
+        {
+
         }
     }
 }
