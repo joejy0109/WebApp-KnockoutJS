@@ -10,6 +10,8 @@ var $app = angular.module('myApp', [])
         },
         responseError: function (error) {
             alert(error.data);
+            if (error.status == 401)
+                $window.location = '/';
             return $q.reject(error);
         }
     }
