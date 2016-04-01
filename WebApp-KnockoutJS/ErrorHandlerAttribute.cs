@@ -10,7 +10,7 @@ using System.Web.Helpers;
 using Citi.MyCitigoldFP.Common.Web.Auth;
 using System.Net;
 
-namespace WebApp-KnockoutJS
+namespace AAAAAAAAAAA
 {
     /// <summary>
     /// 별도로 처리되지 않고 throw 되는 모든 예외에 대해서 관리한다.
@@ -59,7 +59,7 @@ namespace WebApp-KnockoutJS
             else if (ex is MfpNotFoundAuthorizeException)
             {
                 message = ex.Message;
-                ctx.Response.StatusCode = (int)HttpStatusCode.Unauthorized;
+                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
             }
             else if (ex is MfpException)
             {
