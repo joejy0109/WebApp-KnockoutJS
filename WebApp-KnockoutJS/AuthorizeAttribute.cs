@@ -7,6 +7,96 @@ using System.Web.Mvc;
 
 namespace Citi.MyCitigoldFP.Common.Web.Auth
 {
+    [XmlRoot("authroize")]
+    public class Authorize
+    {
+        [XmlElement("controller")]
+        public List<AuthTargetController> Controllers { get; set; }
+    }
+
+
+    public class AuthTargetController
+    {
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+
+        [XmlElement("auth")]
+        public List<Auth> AuthList { get; set; }
+    }
+
+    public class Auth
+    {
+        [XmlAttribute("name")]
+        public string Name { get; set; }
+
+        [XmlAttribute("serviceName")]
+        public string ServiceName { get; set; }
+
+        [XmlAttribute("authKey")]
+        public string AuthKey { get; set; }
+
+        [XmlAttribute("allowAnonymous")]
+        public bool AllowAnonymous { get; set; }
+    }
+
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, AllowMultiple = false, Inherited = true)]
+    public class MfpAuthorizeAllInOneAttribute : AuthorizeAttribute
+    {
+        static readonly Type _allowAnonymousType = typeof(AllowAnonymousAttribute);
+
+        static readonly Authorize _authMatrix;
+
+        static MfpAuthorizeAllInOneAttribute()
+        {
+            using (var xmlReader = XmlReader.Create(@"C:\Users\jj19503\Documents\visual studio 2013\Projects\ConsoleApplication5\ConsoleApplication5\bin\Debug\authorize.xml"))
+            {
+                XmlSerializer xsr = new XmlSerializer(typeof(Authorize));
+                _authMatrix = (Authorize)xsr.Deserialize(xmlReader);
+            }
+           
+
+        }
+
+        /// <summary>
+        /// Action mehtod 진입 전에 권한을 검사한다.
+        /// </summary>
+        /// <param name="filterContext"><see cref="AuthorizationContext"/></param>
+        public override void OnAuthorization(AuthorizationContext filterContext)
+        {
+            if (filterContext == null)
+                throw new ArgumentNullException("filterContext");
+
+            var controllerName = filterContext.ActionDescriptor.ControllerDescriptor.ControllerName;
+            var actionName = filterContext.ActionDescriptor.ActionName;
+
+            var auth = _authMatrix.Controllers
+                .Where(x => x.Name.ToUpper() == controllerName.ToUpper())
+                .Select(x => x.AuthList.FirstOrDefault(y => y.Name.ToUpper() == actionName.ToUpper()))
+                .FirstOrDefault();
+
+
+            if (auth != null && !auth.AllowAnonymous)
+            {
+                // TODO: 권한 검사 로직 (추후 로그인 사용자와 권한을 분리하는 로직 추가
+                var user = filterContext.HttpContext.User as MfpPrincipal;
+                if (user == null || !user.Identity.IsAuthenticated)
+                {
+                    throw new MfpIsNotAuthenticatedException("로그인이 필요합니다.");
+                }
+
+                if (!user.IsInRole(auth.AuthKey))
+                {
+                    if (!string.IsNullOrEmpty(auth.ServiceName))
+                        throw new MfpNotFoundAuthorizeException("[" + auth.ServiceName + "] 서비스에 대한 권한이 없습니다.");
+                    throw new MfpNotFoundAuthorizeException("권한이 없습니다.");
+                }
+            }
+
+            //base.OnAuthorization(filterContext);
+        }
+    }
+    
     /// <summary>
     /// MPF 인증 사용자에 대한 권한을 검사한다.
     /// 
