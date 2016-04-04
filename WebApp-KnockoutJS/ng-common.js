@@ -87,6 +87,17 @@ var $app = angular.module('myApp', [])
         return s.join("") + h;
     }
 })
+.filter('mask1', ['$filter', function ($filter) {
+    // TEST
+    return function (value, format) {
+        if (value == undefined)
+            return value;
+
+        value = value.replace(/(.{2})/g, "$1*").replace(/(.\*)/g, "*");        
+       
+        return value;
+    }
+}])
 .directive('format', ['$filter', function ($filter) {
     return {
         require: "?ngModel",
