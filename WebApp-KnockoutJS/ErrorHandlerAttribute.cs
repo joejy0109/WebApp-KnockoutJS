@@ -34,6 +34,7 @@ namespace AAAAAAAAAAA
             if (filterContext.Exception == null || filterContext.ExceptionHandled) 
                 return;
 
+            filterContext.ExceptionHandled = true;
             /* 
              * TODO: business로 정의된 예외와 그렇지 않은 예외를 구분한다.
              * business로 정의된 예외는 클라이언트에 메세지를 제공하거나 재가공하여 전달하고, 
@@ -50,6 +51,7 @@ namespace AAAAAAAAAAA
             // 예외 종류에 따라 메세지 강제화. 필요에 따라 수정하시오.
             string message;
             string returnUrl = null;
+            
             if (ex is MfpIsNotAuthenticatedException)
             {
                 message = ex.Message;
@@ -59,24 +61,33 @@ namespace AAAAAAAAAAA
             else if (ex is MfpNotFoundAuthorizeException)
             {
                 message = ex.Message;
-                ctx.Response.StatusCode = (int)HttpStatusCode.Forbidden;
+                ctx.Response.StatusCode = 600; // IE에서 정의된 ERROR(401, 402 등등)에 대해 자체 페이지를 표시해주는 문제가 있음
+            }
+            else if (ex is HttpAntiForgeryException)
+            {
+                message = "권한 없는 악의적인 요청이 발견되었습니다.";
+                ctx.Response.StatusCode = 601;
             }
             else if (ex is MfpException)
             {
-                message = "허용되지 않는 요청이 발견되었습니다. (" + ex.Message + ")";
-                ctx.Response.StatusCode = (int)HttpStatusCode.BadRequest;
+                message = "허용되지 않는 요청입니다.\r\n(" + ex.Message + ")";
+                ctx.Response.StatusCode = 602;
             }
             else
             {
                 // TODO: 시스템 예외는 사용자로부터 감추고 대체 메세지를 제공하는 것이 좋다.
                 // ex) '일시적으로 시스템에 장애가 발생하였습니다. 관리자에게 문의하세요.'
+#if DebugMode 
                 message = ex.Message;
+#else
+                message = "일시적으로 시스템 장애가 발생하였습니다.\n관리자에게 문의해 주시기 바랍니다.\n연락처: (02-000-0000).";
+#endif
                 ctx.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
             }
                         
             filterContext.Result = new ContentResult {
                 Content = filterContext.HttpContext.Request.IsAjaxRequest()
-                            ? Json.Encode(message)
+                            ? message
                             : string.Format(JsScripts,
                                     Json.Encode(message), 
                                     returnUrl 
@@ -84,7 +95,7 @@ namespace AAAAAAAAAAA
                                     ?? (object)DefaultUrl)
             };
 
-            filterContext.ExceptionHandled = true;
+            
 
             base.OnException(filterContext);
         } 
