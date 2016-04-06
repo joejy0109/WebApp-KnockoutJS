@@ -1,13 +1,3 @@
-/**
- * Copyright(c) 2016 CiTi Bank, Inc. All Rights Reserved.
- * 
- * ASP.NET MVC Html Customized Extension module.
- * 
- * @author: Jeongyong, Jo
- * @since : 2016-01-29
- * 
- */
-
 using System;
 using System.Reflection;
 using System.Collections.Generic;
@@ -24,7 +14,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
 
 
-namespace Citi.MyCitigoldFP.Web
+namespace JOEJY
 {
     /// <summary>
     /// Html 표현을 위한 확장 기능.
