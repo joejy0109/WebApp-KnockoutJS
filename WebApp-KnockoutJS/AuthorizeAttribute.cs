@@ -5,7 +5,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 
-namespace Citi.MyCitigoldFP.Common.Web.Auth
+namespace JOEJY
 {
     [XmlRoot("authroize")]
     public class Authorize
