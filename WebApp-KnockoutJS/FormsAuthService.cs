@@ -6,7 +6,7 @@ using System.Web;
 using System.Web.Script.Serialization;
 using System.Web.Security;
 
-namespace Citi.MyCitigoldFP.Common.Web.Auth
+namespace JOEJY
 {
     /// <summary>
     /// <see cref="System.Web.Security.FormsAuthentication"/>을 기반으로 하는 MFP 사용자 인증서비스.
