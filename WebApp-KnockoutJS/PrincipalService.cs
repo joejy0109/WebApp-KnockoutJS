@@ -6,7 +6,7 @@ using System.Web;
 using System.Web.Script.Serialization;
 using System.Web.Security;
 
-namespace Citi.MyCitigoldFP.Common.Web.Auth
+namespace JOEJY
 {
     /// <summary>
     /// MFP 인증 사용자 정보 설정 서비스.
