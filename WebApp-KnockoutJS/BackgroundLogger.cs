@@ -30,7 +30,7 @@ namespace JOEJY
             if (_doingCount == 1) return;
             _doingCount++;
             
-            if (_logs != null && _logs.Count > 0)
+            if (_logs.Count > 0)
             {
                 List<T> list = new List<T>();
                 T log;
