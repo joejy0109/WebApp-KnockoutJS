@@ -1,3 +1,13 @@
+/**
+ * Copyright(c) 2016 CiTi Bank, Inc. All Rights Reserved.
+ * 
+ * ASP.NET MVC Html Customized Extension module.
+ * 
+ * @author: Jeongyong, Jo
+ * @since : 2016-01-29
+ * 
+ */
+
 using System;
 using System.Reflection;
 using System.Collections.Generic;
@@ -14,7 +24,7 @@ using System.Text.RegularExpressions;
 using System.Collections.Concurrent;
 
 
-namespace JOEJY
+namespace Citi.MyCitigoldFP.Web
 {
     /// <summary>
     /// Html 표현을 위한 확장 기능.
@@ -105,37 +115,50 @@ namespace JOEJY
         static Regex ScriptTagRegex = new Regex(@"<(?:([^:]+:|\/))?script.*\>", RegexOptions.Compiled);
         static ConcurrentDictionary<string, string> _jsMinifyCache = new ConcurrentDictionary<string, string>();
 
-        public static IHtmlString RenderBundleScripts(this HtmlHelper htmlhelper)
+        public static IHtmlString RenderBundleScripts(this HtmlHelper htmlhelper, bool isEnable = false)
         {
             var items = htmlhelper.ViewContext.HttpContext.Items;
             foreach (object key in items.Keys)
             {
                 if (key.ToString().StartsWith("_script_"))
                 {
-                    if (!_jsMinifyCache.ContainsKey(key.ToString()))
+                    if (!isEnable)
                     {
                         var template = items[key] as Func<object, HelperResult>;
-                        
-                        var jsPath = AppDomain.CurrentDomain.BaseDirectory + key + ".js";
-                        var virtualPath = "~/" + key + ".js";
-                        
-                        File.WriteAllText(jsPath, ScriptTagRegex.Replace(template(null) + string.Empty, string.Empty), Encoding.UTF8);
-
-                        BundleTable.Bundles.Add(new ScriptBundle(virtualPath).Include(virtualPath));
-                        var bundleContext = new BundleContext(htmlhelper.ViewContext.HttpContext, BundleTable.Bundles, virtualPath);
-                        var bundle = BundleTable.Bundles.Single(x => x.Path == virtualPath);
-                        var bundleResponse = bundle.GenerateBundleResponse(bundleContext);
-
-                        _jsMinifyCache.TryAdd(key.ToString(), bundleResponse.Content);                        
-                        
-                        File.Delete(jsPath);
+                        htmlhelper.ViewContext.Writer.Write(template(null) + Environment.NewLine);
                     }
-
-                    string minifiedJs;
-                    if (_jsMinifyCache.TryGetValue(key.ToString(), out minifiedJs))
+                    else
                     {
-                        htmlhelper.ViewContext.Writer.Write(
-                            string.Format("<script type=\"text/javascript\">{1}{0}{1}</script>{1}", minifiedJs, Environment.NewLine));
+                        if (!_jsMinifyCache.ContainsKey(key.ToString()))
+                        {
+                            var template = items[key] as Func<object, HelperResult>;
+
+                            var jsPath = AppDomain.CurrentDomain.BaseDirectory + key + ".js";
+                            var virtualPath = "~/" + key + ".js";
+
+                            File.WriteAllText(jsPath, ScriptTagRegex.Replace(template(null) + string.Empty, string.Empty), Encoding.UTF8);
+
+                            BundleTable.Bundles.Add(new ScriptBundle(virtualPath).Include(virtualPath));
+                            var bundleContext = new BundleContext(htmlhelper.ViewContext.HttpContext, BundleTable.Bundles, virtualPath);
+                            var bundle = BundleTable.Bundles.Single(x => x.Path == virtualPath);
+                            var bundleResponse = bundle.GenerateBundleResponse(bundleContext);
+
+                            _jsMinifyCache.TryAdd(key.ToString(), bundleResponse.Content);
+
+                            File.Delete(jsPath);
+                        }
+
+                        string minifiedJs;
+                        if (_jsMinifyCache.TryGetValue(key.ToString(), out minifiedJs))
+                        {
+                            htmlhelper.ViewContext.Writer.Write(
+                                string.Format("<script type=\"text/javascript\">{1}{0}{1}</script>{1}", minifiedJs, Environment.NewLine));
+                        }
+                        else
+                        {
+                            var template = items[key] as Func<object, HelperResult>;
+                            htmlhelper.ViewContext.Writer.Write(template(null) + Environment.NewLine);
+                        }
                     }
                 }
             }
