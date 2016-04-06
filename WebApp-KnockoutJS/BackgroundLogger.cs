@@ -21,6 +21,11 @@ namespace JOEJY
 
         private BackgroundLogger(Action<List<T>> action, int period)
         {
+            if (action == null)
+                throw new ArgumentNullException("action");
+            if (period <= 0)
+                throw new ArgumentException("'period' must be greater than 0 (recommand 1000 = 1s)");
+                
             _action = action;
             _scheduler = new System.Threading.Timer(new System.Threading.TimerCallback(Callback), null, (int)1000, period);
         }                
