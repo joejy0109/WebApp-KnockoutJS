@@ -4,7 +4,7 @@ using System.Linq;
 using System.Security.Principal;
 using System.Web;
 
-namespace Citi.MyCitigoldFP.Common.Web.Auth
+namespace JOEJY
 {
     /// <summary>
     /// Web 인증 사용자를 위한 환경 모듈.
