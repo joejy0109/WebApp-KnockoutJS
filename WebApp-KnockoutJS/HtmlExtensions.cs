@@ -121,21 +121,27 @@ namespace JOEJY
                     {
                         if (!_jsMinifyCache.ContainsKey(key.ToString()))
                         {
-                            var template = items[key] as Func<object, HelperResult>;
+                            try
+                            {
+                                var template = items[key] as Func<object, HelperResult>;
 
-                            var jsPath = AppDomain.CurrentDomain.BaseDirectory + key + ".js";
-                            var virtualPath = "~/" + key + ".js";
+                                var jsPath = AppDomain.CurrentDomain.BaseDirectory + key + ".js";
+                                var virtualPath = "~/" + key + ".js";
 
-                            File.WriteAllText(jsPath, ScriptTagRegex.Replace(template(null) + string.Empty, string.Empty), Encoding.UTF8);
+                                File.WriteAllText(jsPath, ScriptTagRegex.Replace(template(null) + string.Empty, string.Empty), Encoding.UTF8);
 
-                            BundleTable.Bundles.Add(new ScriptBundle(virtualPath).Include(virtualPath));
-                            var bundleContext = new BundleContext(htmlhelper.ViewContext.HttpContext, BundleTable.Bundles, virtualPath);
-                            var bundle = BundleTable.Bundles.Single(x => x.Path == virtualPath);
-                            var bundleResponse = bundle.GenerateBundleResponse(bundleContext);
+                                BundleTable.Bundles.Add(new ScriptBundle(virtualPath).Include(virtualPath));
+                                var bundleContext = new BundleContext(htmlhelper.ViewContext.HttpContext, BundleTable.Bundles, virtualPath);
+                                var bundle = BundleTable.Bundles.Single(x => x.Path == virtualPath);
+                                var bundleResponse = bundle.GenerateBundleResponse(bundleContext);
 
-                            _jsMinifyCache.TryAdd(key.ToString(), bundleResponse.Content);
+                                _jsMinifyCache.TryAdd(key.ToString(), bundleResponse.Content);
 
-                            File.Delete(jsPath);
+                                File.Delete(jsPath);
+                            }
+                            catch
+                            {
+                            }
                         }
 
                         string minifiedJs;
