@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace Citi.MyCitigoldFP.Common.Web.Auth
+namespace JOEJY
 {
     /// <summary>
     /// 인증된 사용자 정보.
