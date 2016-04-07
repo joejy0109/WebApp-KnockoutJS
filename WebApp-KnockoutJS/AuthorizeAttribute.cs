@@ -153,6 +153,66 @@ namespace JOEJY
         }
     }
 
+    [AttributeUsage(AttributeTargets.Class|AttributeTargets.Method, AllowMultiple=false, Inherited=true)]
+    public class MfpCheckLogOn1Attribute : AuthorizeAttribute
+    {
+        static readonly Type _allowAnonymousType = typeof(AllowAnonymousAttribute);
+
+        public override void OnAuthorization(AuthorizationContext filterContext)
+        {
+            if (filterContext == null)
+                throw new ArgumentNullException("filterContext");
+            bool isSkip = filterContext.ActionDescriptor.IsDefined(_allowAnonymousType, true) ||
+                       filterContext.ActionDescriptor.ControllerDescriptor.IsDefined(_allowAnonymousType, true);
+
+            if (!isSkip)
+            {
+                var user = filterContext.HttpContext.User as MfpPrincipal;
+                if (user == null || !user.Identity.IsAuthenticated)
+                {
+                    throw new MfpIsNotAuthenticatedException("로그인이 필요합니다.");
+                }
+            }
+
+            base.OnAuthorization(filterContext);
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class|AttributeTargets.Method, AllowMultiple=false, Inherited=true)]
+    public class MfpAuthorize2Attribute : AuthorizeAttribute
+    {
+        readonly string _role;
+        readonly string _serviceName;
+
+        public MfpAuthorizeAttribute(string role, string serviceName = null)
+        {
+            if (string.IsNullOrEmpty(role))
+                throw new ArgumentNullException("role");
+
+            _role = role;
+            _serviceName = serviceName;
+        }
+
+        /// <summary>
+        /// Action mehtod 진입 전에 권한을 검사한다.
+        /// </summary>
+        /// <param name="filterContext"><see cref="AuthorizationContext"/></param>
+        public override void OnAuthorization(AuthorizationContext filterContext)
+        {
+            if (filterContext == null)
+                throw new ArgumentNullException("filterContext");
+
+            if (!(filterContext.HttpContext.User as MfpPrincipal).IsInRole(_role))
+            {
+                if (!string.IsNullOrEmpty(_serviceName))
+                    throw new MfpNotFoundAuthorizeException("[" + _serviceName + "] 서비스에 대한 권한이 없습니다.");
+                throw new MfpNotFoundAuthorizeException("권한이 없습니다.");
+            }
+
+            base.OnAuthorization(filterContext);
+        }
+    }
+    
     /// <summary>
     /// 로그인 인증 예외
     /// 
