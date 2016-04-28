@@ -1,63 +1,79 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Web.Mvc;
-using System.Web;
-using Citi.MyCitigoldFP.Common;
-using System.Configuration;
-using System.Web.Helpers;
-using Citi.MyCitigoldFP.Common.Web.Auth;
-using System.Net;
-using System.Collections.Concurrent;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace JOEJY
 {
-    public class BackgroundLogger<T>
+    public class BackgroundTask<T>
     {
-        private readonly ConcurrentQueue<T> _logs = new ConcurrentQueue<T>();
+        private static NLog.Logger logger = NLog.LogManager.GetCurrentClassLogger();
+
+        private readonly ConcurrentQueue<T> _workList = new ConcurrentQueue<T>();
         private readonly System.Threading.Timer _scheduler;
         private readonly Action<List<T>> _action;
         private int _doingCount = 0;
 
-        private BackgroundLogger(Action<List<T>> action, int period)
+        private BackgroundTask(Action<List<T>> action, int period)
         {
             if (action == null)
                 throw new ArgumentNullException("action");
             if (period <= 0)
                 throw new ArgumentException("'period' must be greater than 0 (recommand 1000 = 1s)");
-                
+
             _action = action;
             _scheduler = new System.Threading.Timer(new System.Threading.TimerCallback(Callback), null, (int)1000, period);
-        }                
-     
+
+        }
+
         private void Callback(object obj)
         {
             if (_doingCount == 1) return;
             _doingCount++;
-            
-            if (_logs.Count > 0)
-            {
-                List<T> list = new List<T>();
-                T log;
-                while(_logs.TryDequeue(out log))
-                {
-                    list.Add(log);
-                }
 
-                _action(list);
+            if (_workList.Count > 0)
+            {
+               //List<T> list = new List<T>();
+                //T item;
+                //while (_workList.TryDequeue(out item))
+                //    list.Add(item);
+
+                int listCount = _workList.Count;
+                int workingCount = listCount > 1000 ? 1000 : listCount;
+                    
+                //List<T> list = new List<T>(workingCount);
+                //for (int i = 0; i < workingCount; i++)
+                //{
+                //    T item;
+                //    if(_workList.TryDequeue(out item))
+                //        list.Add(item);
+                //}
+
+                T[] list = new T[workingCount];
+                for (int i = 0; i < workingCount; i++)
+                {
+                    T item;
+                    if (_workList.TryDequeue(out item))
+                        list[i] = item;
+                }
+               
+                try { _action(list); }
+                catch (Exception ex) { logger.Error(ex.ToString()); }
             }
-            
             _doingCount--;
         }
 
-        public void SetLog(T log)
+        public void SetWork(T log)
         {
-            _logs.Enqueue(log);
+            _workList.Enqueue(log);
         }
 
-        public static BackgroundLogger<T> GetLogger(Action<List<T>> action, int period)
+        public static BackgroundTask<T> GetTask(Action<List<T>> action, int period)
         {
-            return new BackgroundLogger<T>(action, period);
+            return new BackgroundTask<T>(action, period);
         }
     }
 }
