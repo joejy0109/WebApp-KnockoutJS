@@ -24,7 +24,7 @@ namespace AAAAAAAAAAA
 
         private static readonly string JsScripts = @"
 <script type='text/javascript'>
-    alert('{0}');
+    alert({0});
     location.href = '{1}';
 </script>
 ";
@@ -70,7 +70,7 @@ namespace AAAAAAAAAAA
             }
             else if (ex is MfpException)
             {
-                message = "허용되지 않는 요청입니다.\r\n(" + ex.Message + ")";
+                message = "허용되지 않는 요청입니다.\n(" + ex.Message + ")";
                 ctx.Response.StatusCode = 602;
             }
             else
