@@ -92,10 +92,8 @@ namespace MyWebAppPackage.Extensions
             List<Type> types = new List<Type>();
             foreach (var asmName in assemblyNames)
             {
-                var asm = System.Reflection.Assembly.Load(asmName);
-                types.AddRange(asm.GetTypes().Where(t=>t.IsClass));
+                types.AddRange(System.Reflection.Assembly.Load(asmName).GetTypes().Where(t=>t.IsClass));
             }
-
             typeModels = new HashSet<Type>(types);
         }
     }
