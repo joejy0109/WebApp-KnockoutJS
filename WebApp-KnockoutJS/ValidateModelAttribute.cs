@@ -11,6 +11,7 @@ namespace MyWebAppPackage.Extensions
     public class ValidateModelAttribute : ActionFilterAttribute
     {
         static readonly Regex regex = new Regex(@"^\[\d+\]\.(.*)", RegexOptions.Compiled | RegexOptions.Singleline);
+        static HashSet<Type> typeModels;
 
         public string ViewName { get; private set; }
 
@@ -53,8 +54,10 @@ namespace MyWebAppPackage.Extensions
                 {
                     var result = filterContext.IsChildAction ? new PartialViewResult() : (ViewResultBase)new ViewResult();
                     result.ViewName = this.ViewName;
-                    result.ViewData = filterContext.Controller.ViewData;
-                    filterContext.Result = result;                        
+                    result.ViewData = new ViewDataDictionary(filterContext.Controller.ViewData) {
+                        Model = filterContext.ActionParameters.Values.Where(x=> typeModels.Contains(x.GetType())).FirstOrDefault()
+                    };
+                    filterContext.Result = result;    
                 }
             }
 
@@ -82,6 +85,18 @@ namespace MyWebAppPackage.Extensions
             }
 
             return new { detail = modelState.ToDictionary(k => k.Key, v => v.Value.Errors.Select(x => x.ErrorMessage)) };
+        }
+        
+        public static void SetModelInfo(params string[] assemblyNames)
+        {
+            List<Type> types = new List<Type>();
+            foreach (var asmName in assemblyNames)
+            {
+                var asm = System.Reflection.Assembly.Load(asmName);
+                types.AddRange(asm.GetTypes().Where(t=>t.IsClass));
+            }
+
+            typeModels = new HashSet<Type>(types);
         }
     }
 }
