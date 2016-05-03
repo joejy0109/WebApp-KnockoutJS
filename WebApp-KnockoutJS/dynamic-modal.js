@@ -84,6 +84,8 @@ var dynamicModal = (function () {
         '</div>'
     ];
 
+    var complete = function () { };
+
     return new function () {
         var $confirmMessage = undefined;
         var $layoutIndex = 0;
@@ -121,7 +123,7 @@ var dynamicModal = (function () {
                 setTimeout(function () {                                        
                     layoutArray.pop().remove();
                     layoutCount--;                    
-                }, 300);                
+                }, 500);                
             });       
 
             $.ajax({
@@ -137,7 +139,8 @@ var dynamicModal = (function () {
                 layout.find('div:eq(0)').modal({ backdrop: layoutArray.length == 1 });          
                 comopileForAngular($("#dyModalContent" + layoutCount));
                 if (typeof callback === "function") {
-                    callback($("#dyModalContent" + layoutCount));
+                    callback(layout.find('div:eq(0)'));
+                    callback = null;
                 }
             }).fail(function (xhr, status, thrown) {
                 //alert(xhr.responseText);
@@ -145,10 +148,14 @@ var dynamicModal = (function () {
                 setTimeout(function () {
                     layout.find("input:text:first").focus();
                 }, 500);
+                if (typeof callback === "function") {
+                    callback(layout.find('div:eq(0)'));
+                }
             });
 
             return this;
         };
+       
 
         /**
         * @description
@@ -221,9 +228,17 @@ var dynamicModal = (function () {
                         //else
                         //    alert(xhr.responseText);
                     }).complete(function () {
-                        comopileForAngular(layoutArray[layoutCount - 1]);
+                        //if (typeof complete === 'function') {
+                        //    complete();
+                        //}
+                        comopileForAngular(layoutArray[layoutCount - 1]);                        
                     });
                 });
+            return this;
+        };
+
+        this.complete = function (func) {
+            complete = func;
         };
     };
 })();
