@@ -65,6 +65,45 @@ namespace WebApp_KnockoutJS
             foreach (var item in source)
                 action(item);
         }
+        
+        public static string Half2Full(string s)
+        {            
+            var sb = new System.Text.StringBuilder();
+            if (string.IsNullOrEmpty(s) == false)
+            {
+                for (int i = 0; i < s.Length; i++)
+                {
+                    var chr = s[i];
+                    //if ((int)chr >= 33 && (int)chr <= 126)
+                    if (chr >= 0x21 && chr <= 0x7e)
+                        chr += (char)0xfee0;
+                    else if (chr == 0x20)
+                        chr = (char)0x3000;
+
+                    sb.Append(chr);
+                }
+            }
+            return sb.ToString();
+        }
+        public static string Full2Half(string s)
+        {
+            var sb = new System.Text.StringBuilder();
+            if (string.IsNullOrEmpty(s) == false)
+            {
+                for (int i = 0; i < s.Length; i++)
+                {
+                    var chr = s[i];
+                    //if ((int)chr <= 65374 && (int)chr > 65280)
+                    if (chr <= 0xff5e && chr > 0xff00)
+                        chr -= (char)0xfee0;
+                    else if (chr == 0x3000)
+                        chr = (char)0x20;
+
+                    sb.Append(chr);
+                }
+            }
+            return sb.ToString();
+        }
 
         static IDictionary<Type, Delegate> _cachedIL = new Dictionary<Type, Delegate>();
         static IDictionary<Type, Delegate> _cachedDeepIL = new Dictionary<Type, Delegate>();
