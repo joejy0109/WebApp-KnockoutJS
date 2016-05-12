@@ -9,7 +9,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace WebApp_KnockoutJS
+namespace WebApp-KnockoutJS
 {
     /// <summary>
     /// 예외 처리 Helper.
@@ -85,6 +85,7 @@ namespace WebApp_KnockoutJS
             }
         }
 
+        // 공통 2016-03-04
         private static readonly Type[] RangeTypes = new[] { typeof(short),typeof(int),typeof(long),typeof(double) };
         public static void Range<T>(object value, T min, T max, string paramName, string errorMessage = null) where T : struct
         {
@@ -93,22 +94,45 @@ namespace WebApp_KnockoutJS
 
             var validator = new RangeAttribute(typeof(T), min.ToString(), max.ToString());
             if (!validator.IsValid(value))
-                throw new MfpException(errorMessage?? paramName + " 값이 허용된 범위를 벗어났습니다.", value);
+                throw new MfpException(errorMessage ?? paramName + " 값이 허용된 범위를 벗어났습니다.", value, "403");
         }
 
         public static void Required(object value, string paramName, string errorMessage = null)
         {
             var validator = new RequiredAttribute();
             if (!validator.IsValid(value))
-                throw new MfpException(errorMessage ?? paramName + "은 필수 입력 값입니다.", value);
+                throw new MfpException(errorMessage ?? paramName + "은 필수 입력 값입니다.", value, "404");
         }
 
-        public static void Regex(object value, string paramName, string pattern, string errorMessage = null)
+        public static void Regex(object value, string pattern, string paramName, string errorMessage = null)
         {
             var validator = new RegularExpressionAttribute(pattern);
             if (!validator.IsValid(value))
+                throw new MfpException(errorMessage ?? paramName + " 항목이 규칙에 부합하지 않습니다", value, "405");
+        }
+
+        public static void Email(object value, string paramName, string errorMessage = null)
+        {
+            var validator = new EmailAddressAttribute();
+            if (!validator.IsValid(value))
                 throw new MfpException(errorMessage ?? paramName + " 항목이 규칙에 부합하지 않습니다", value);
         }
+
+        public static void Phone(object value, string paramName, string errorMessage = null)
+        {
+            var validator = new PhoneAttribute();
+            if (!validator.IsValid(value))
+                throw new MfpException(errorMessage ?? paramName + " 항목이 규칙에 부합하지 않습니다", value);
+        }
+
+        public static void Url(object value, string paramName, string errorMessage = null)
+        {
+            var validator = new UrlAttribute();
+            if (!validator.IsValid(value))
+                throw new MfpException(errorMessage ?? paramName + " 항목이 규칙에 부합하지 않습니다", value);
+        }
+         
+
         /// <summary>
         /// 선택적 항목에 대하여 Null검사를 수행하고, null 값 발견시 <see cref="ValidateAnonymous"/>을 throw한다.        
         /// 현재 Property 멤버만 지원됨.
