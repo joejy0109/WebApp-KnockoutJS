@@ -61,7 +61,7 @@ namespace System.ComponentModel.DataAnnotations
             {
                 return new ValidationResult(base.ErrorMessage);
             }
-            return null;            
+            return ValidationResult.Success;          
         }
 
         public IEnumerable<ModelClientValidationRule> GetClientValidationRules(ModelMetadata metadata, ControllerContext context)
