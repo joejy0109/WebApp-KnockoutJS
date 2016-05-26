@@ -29,7 +29,7 @@ namespace JOEJY
                     return new ValidationResult(base.ErrorMessage);
                 }
             }
-            return null;
+            return ValidationResult.Success;
         }
     }
 
