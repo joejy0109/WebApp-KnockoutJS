@@ -79,8 +79,20 @@ namespace WebApp-KnockoutJS
                 foreach (var attr in memberExpr.Member.GetCustomAttributes())
                 {
                     var validationAttr = attr as ValidationAttribute;
-                    if (validationAttr != null && !validationAttr.IsValid(val))
-                        throw new MfpException(validationAttr.ErrorMessage, val);
+                    if (validationAttr != null)
+                    {
+                        // 개선 후...
+                        if (validationAttr.GetValidationResult(val, new ValidationContext(src)) != ValidationResult.Success)
+                        {
+                            throw new MfpException(validationAttr.ErrorMessage, val);
+                        }
+
+                        // todo: mvc 파이프라인에서는 ValidationContext 객체가 전달되나 기타 위치에서 수행시에는
+                        //       이 객체가 null이므로 명시적으로 제공해야한다.
+                        // validationAttr.Validate(val, new ValidationContext(src)); -> 내부에서 throw를 발생시킬 경우 사용 (비권장)
+                        //if (!validationAttr.IsValid(val)) <- 개선 전...
+                        //    throw new MfpException(validationAttr.ErrorMessage, val);
+                    }
                 }
             }
         }
