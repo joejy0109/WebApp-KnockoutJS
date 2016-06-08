@@ -9,10 +9,11 @@ var $app = angular.module('myApp', [])
             return config;
         },
         responseError: function (error) {
-            /*
+             /*
                 호출된 ajax object가 응답(response)를 받지 않은 상태로
-                다른 작업 (페이지 이동과 같은)이 발생할 경우 전역 error 처리기에서는
-                응답데이터가 null or undefind로 응답하기 때문에 사용자 메세지 또한
+                다른 작업 (페이지 이동과 같은)이 발생할 경우 해당 ajax object는
+                canceled로 처리되고 error 처리기로 error를 전달, 전역 error 처리기에서는
+                응답 데이터가 null or undefind로 응답하기 때문에 사용자 메세지 또한
                 'null' or 'undefind'로 출력되는 문제가 발생한다.
                 angular ajax => output = null , status = -1
                 jquery ajax  => output = null , status = 0
