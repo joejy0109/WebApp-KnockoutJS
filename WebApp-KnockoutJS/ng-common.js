@@ -150,3 +150,22 @@ $app.filter('highlight', ['$sce', function ($sce) {
         return $sce.trustAsHtml(text);
     };
 }]);
+
+$(function () {
+    
+    //ValidateAntiForgeryTokenForCSRF 관련 Ajax Setting
+    $.ajaxSetup({
+        headers: { '__RequestVerificationToken': $("input[name='__RequestVerificationToken']").first().val() },
+        error: function (xhr, status, thrown) {
+            if (status !== "parsererror") {
+                //alert(xhr.responseText);
+                // 상단 코드 주석 참조...
+                if (xhr.responseText != null) {
+                    alert(xhr.responseText);
+                }
+            }
+            if (xhr.status == 401)
+                window.location.href = mfp_common.MainUrl;
+        }
+    });
+});
