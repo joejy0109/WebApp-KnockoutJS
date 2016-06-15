@@ -59,7 +59,7 @@ namespace System.ComponentModel.DataAnnotations
                 (OperatorName == GenericCompareOperator.LessThan && valThis.CompareTo(valOther) >= 0) || 
                 (OperatorName == GenericCompareOperator.LessThanOrEqual && valThis.CompareTo(valOther) > 0))
             {
-                return new ValidationResult(base.ErrorMessage);
+                return new ValidationResult(string.Format(base.ErrorMessage, valOther));
             }
             return ValidationResult.Success;          
         }
