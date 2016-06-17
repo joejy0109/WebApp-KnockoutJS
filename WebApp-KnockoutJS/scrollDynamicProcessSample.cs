@@ -27,10 +27,12 @@ var drawGraph = function () {
 
     //console.log('scrollHeight: ' + totalHeight + ' /postTop-height: ' + (curPosTop - height) + ' /posTop: ' + curPosTop);
    
+   // scroll 이벤트 대상 item
     $("div.gray:eq(" + idx1 + ")").each(function () {
         if (curPosTop <= $(this).offset().top)
             return true;
-
+        
+        // 병행 처리할 item
         var $assign = $(".assign:eq(" + idx1 + ")");
 
         var s = $assign.data("size");
@@ -41,7 +43,7 @@ var drawGraph = function () {
 
         //console.log(idx1);
 
-        idx1++;
+        idx1++; // 순서대로 처리되어진다 (전제조건: up scroll시 이벤트 발생되지 않는 조건)
     });
 
     //$(".assign:eq(" + idx1 + ")").each(function () {
