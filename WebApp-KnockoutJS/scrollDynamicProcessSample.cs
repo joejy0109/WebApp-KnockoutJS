@@ -11,7 +11,7 @@ var dynamicGraph = function () {
     posTop = $win.scrollTop();
     curPosTop = height + posTop; // 현재 top position               
     var totalHeight = $('html').prop('scrollHeight');
-    if (curPosTop >= totalHeight) {
+    if (curPosTop > totalHeight) {
         return;// 현재 위치(top)이 마지막에 도달하면 작업 종료
     }
     
